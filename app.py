@@ -1,4 +1,3 @@
-# streamlit_chemistry_34_full.py
 import streamlit as st
 
 st.set_page_config(
@@ -6,21 +5,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- SESSION STATE ----------------
-if "score" not in st.session_state:
-    st.session_state.score = 0
-
-if "answered" not in st.session_state:
-    st.session_state.answered = set()
-
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("📘 34 САБАҚ")
 lessons = [f"{i}-сабақ" for i in range(1, 35)]
 lesson_selected = st.sidebar.selectbox("Сабақты таңдаңыз", lessons)
-st.sidebar.markdown("---")
 mode = st.sidebar.radio("Режим", ["Оқушы", "Мұғалім"])
 
-# ---------------- TITLE ----------------
 st.title("🧪 Органикалық функционалдық топтардың сапалық реакциялары")
 st.caption(f"Таңдалған: {lesson_selected} | Режим: {mode}")
 
@@ -78,39 +68,36 @@ questions = [
     }
 ]
 
-total_questions = len(questions)
-
 # ---------------- TEST ----------------
 st.subheader("📝 Тест")
 
+user_answers = []
+all_answered = True
+
 for i, q in enumerate(questions):
     st.markdown(f"**{i+1}. {q['question']}**")
+
     answer = st.radio(
         "Жауапты таңдаңыз:",
-        q["options"],
+        ["— таңдаңыз —"] + q["options"],
         key=f"q_{i}"
     )
 
-    if st.button("Тексеру", key=f"btn_{i}"):
-        if i not in st.session_state.answered:
-            st.session_state.answered.add(i)
-            if answer == q["correct"]:
-                st.session_state.score += 1
-                st.success("✅ Дұрыс!")
-            else:
-                st.error(f"❌ Қате! Дұрыс жауап: {q['correct']}")
-        else:
-            st.warning("⚠️ Бұл сұрақ бұрын тексерілген")
+    if answer == "— таңдаңыз —":
+        all_answered = False
+        user_answers.append(None)
+    else:
+        user_answers.append(answer)
 
     st.markdown("---")
 
 # ---------------- RESULT ----------------
-st.markdown(
-    f"## 📊 Нәтиже: {st.session_state.score} / {total_questions}"
-)
+score = 0
+if all_answered:
+    for ua, q in zip(user_answers, questions):
+        if ua == q["correct"]:
+            score += 1
 
-# ---------------- RESET ----------------
-if st.button("🔄 Қайта бастау"):
-    st.session_state.score = 0
-    st.session_state.answered = set()
-    st.experimental_rerun()
+st.markdown(
+    f"## 📊 Нәтиже: {score} / {len(questions)}"
+)
